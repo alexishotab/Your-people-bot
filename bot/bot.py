@@ -42,7 +42,21 @@ def get_age(message):
     bot.send_message(message.from_user.id, text=question.format(message.from_user), reply_markup=markup)
     bot.register_next_step_handler(message, menu)
     
-@bot.message_handler(commands=['menu'])
+#@bot.message_handler(commands=['menu'])
+#@bot.message_handler(content_types=['text'])
+def menu(message):
+    if message.chat.type=='private':
+        print(message.text)
+        if message.text=='Да':
+            markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+            item1=types.KeyboardButton('Поиск собеседника')
+            markup.add(item1)
+            bot.send_message(message.from_user.id, 'Начнем!'.format(message.from_user),reply_markup=markup)
+            #bot.register_next_step_handler(message, end_regestration)
+        elif message.text=='Нет':
+            bot.send_message(message.chat.id, 'Напишите /reg')
+'''
+#@bot.message_handler(commands=['menu'])
 #@bot.message_handler(content_types=['text'])
 def menu(message):
     if message.chat.type=='private':
@@ -55,22 +69,34 @@ def menu(message):
             bot.register_next_step_handler(message, end_regestration)
         elif message.text=='Нет':
             bot.send_message(message.chat.id, 'Напишите /reg')
-
+'''
+@bot.message_handler(content_types=['text'])
 def end_regestration(message):
     if message.chat.type=='private':
-            if message.text=='Поиск собеседника':
-                markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
-                print('Добавили в базу')
-                item1=types.KeyboardButton('Остановить поиск')
-                markup.add(item1)
+        print(message.text)
+        if message.text=='Поиск собеседника':
+            markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+            print('Добавили в базу')
+            item1=types.KeyboardButton('Остановить поиск')
+            markup.add(item1)
+
+            chat_two=db.get_chat()#берем второго собеседника. Стоит первым в очереди
+            if db.create_chat(message.chat.id, chat_two)==False:
                 db.add_queue(message.chat.id)
                 bot.send_message(message.chat.id,'Идет поиск собеседника',reply_markup=markup)
-            elif message.text =='Остановить поиск':
-                print('Удалили из базы')
-                db.delete_queue(message.chat.id)
-                bot.send_message(message.chat.id,'Поиск остановлен, напишите /menu')
             else:
-                print('Вы на этапе Где уже заносится в базу и тд')
+                mess='Собеседник найден! Чтобы остановить диалог, нажмите /stop' 
+                markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+                item1=types.KeyboardButton('/stop')
+                markup.add(item1)
+                bot.send_message(message.chat.id,mess,reply_markup=markup)
+                bot.send_message(chat_two,mess,reply_markup=markup)
+        elif message.text =='Остановить поиск':
+            print('Удалили из базы')
+            db.delete_queue(message.chat.id)
+            bot.send_message(message.chat.id,'Поиск остановлен, напишите /menu')
+        else:
+            print('Вы на этапе Где уже заносится в базу и тд')
 
 
 

@@ -6,8 +6,32 @@ class Database:
         self.cursor =self.connection.cursor()
     def add_queue(self,chat_id):
         with self.connection:
-            return self.cursor.execute("INSERT INTO 'queue' ('chat_id') VALUES(?)",(chat_id,))
+            self.cursor.execute("INSERT INTO `queue` (`chat_id`) VALUES(?)",(chat_id,))
+            self.connection.commit()
+            users=self.cursor.execute("SELECT * FROM `queue`")
+            print(users.fetchall())
     def delete_queue(self,chat_id):
         with self.connection:
-            return self.cursor.execute("DELETE INTO 'queue' WHERE 'chat_id' = ?",(chat_id,))
-        
+            self.cursor.execute("DELETE FROM `queue` WHERE `chat_id` = ?",(chat_id,))
+            self.connection.commit()
+            users=self.cursor.execute("SELECT * FROM `queue`")
+            print(users.fetchall())
+
+    def get_chat(self):
+        with self.connection:
+            chat=self.cursor.execute("SELECT * FROM `queue`", ()).fetchmany(1)
+            if (bool(len(chat))):
+                for row in chat:
+                    return row[1]
+            else:
+                return False
+
+    def create_chat(self,chat_one,chat_two):
+        with self.connection:
+            if chat_two!=0:
+                self.cursor.execute("DELETE FROM `queue` WHERE `chat_id` = ?",(chat_two,))
+                self.cursor.execute("INSERT INTO `chats` (`chat_one`,`chat_two`) VALUES(?,?)",(chat_one,chat_two,))
+                return True            
+            else:
+                #go to queqe
+                return False
