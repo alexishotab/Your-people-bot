@@ -7,9 +7,12 @@ bot=tl.TeleBot('5669265039:AAEfAtDMJ_YpphPLJmoSrY0UhWDVBSmsFKM')
 name = ''
 surname = ''
 age = 0
+flag=False
 @bot.message_handler(commands=['start','reg'])
 def start(message):
+    global flag
     if message.text == '/reg':
+        flag=False
         bot.send_message(message.from_user.id, "Как тебя зовут?")
         bot.register_next_step_handler(message, get_name)
     else:
@@ -29,11 +32,6 @@ def get_age(message):
         bot.send_message(message.from_user.id, 'Цифрами, пожалуйста')
         bot.register_next_step_handler(message, get_age)
         return None
-    #keyboard = types.InlineKeyboardMarkup() #наша клавиатура
-    #key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes') #кнопка «Да»
-    #keyboard.add(key_yes) #добавляем кнопку в клавиатуру
-    #key_no= types.InlineKeyboardButton(text='Нет', callback_data='no')
-    #keyboard.add(key_no)
     question = 'Тебе '+str(age)+' лет, тебя зовут '+name+' ?'
     markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1=types.KeyboardButton('Да')
@@ -42,38 +40,38 @@ def get_age(message):
     bot.send_message(message.from_user.id, text=question.format(message.from_user), reply_markup=markup)
     bot.register_next_step_handler(message, menu)
     
-#@bot.message_handler(commands=['menu'])
-#@bot.message_handler(content_types=['text'])
 def menu(message):
+    global flag
     if message.chat.type=='private':
-        print(message.text)
         if message.text=='Да':
             markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
             item1=types.KeyboardButton('Поиск собеседника')
             markup.add(item1)
-            bot.send_message(message.from_user.id, 'Начнем!'.format(message.from_user),reply_markup=markup)
-            #bot.register_next_step_handler(message, end_regestration)
+            flag=True
+            print('Теперь флаг Тру')
+            bot.send_message(message.from_user.id, 'Начнем!'.format(message.from_user),reply_markup=markup)            
         elif message.text=='Нет':
             bot.send_message(message.chat.id, 'Напишите /reg')
-'''
-#@bot.message_handler(commands=['menu'])
-#@bot.message_handler(content_types=['text'])
-def menu(message):
-    if message.chat.type=='private':
-        print(message.text)
-        if message.text=='Да':
-            markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
-            item1=types.KeyboardButton('Поиск собеседника')
-            markup.add(item1)
-            bot.send_message(message.from_user.id, 'Выберете команду'.format(message.from_user),reply_markup=markup)
-            bot.register_next_step_handler(message, end_regestration)
-        elif message.text=='Нет':
-            bot.send_message(message.chat.id, 'Напишите /reg')
-'''
+            flag=False
+
+@bot.message_handler(commands=['stop'])
+def stop(message):
+    chat_info=db.get_active_chat(message.chat.id)
+    if chat_info!=False:
+        db.delete_chat(chat_info[0])
+        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+        item1=types.KeyboardButton('Поиск собеседника')
+        markup.add(item1)
+        bot.send_message(chat_info[1], 'Собеседник покинул чат',reply_markup=markup)
+        bot.send_message(message.chat.id, 'Вы вышли из чата',reply_markup=markup)    
+    else:
+        bot.send_message(message.chat.id, 'Вы не начали чат!',reply_markup=markup)    
+
 @bot.message_handler(content_types=['text'])
-def end_regestration(message):
-    if message.chat.type=='private':
-        print(message.text)
+def main(message):
+    global flag
+    print('main',flag)
+    if message.chat.type=='private' and flag:
         if message.text=='Поиск собеседника':
             markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
             print('Добавили в базу')
@@ -96,7 +94,13 @@ def end_regestration(message):
             db.delete_queue(message.chat.id)
             bot.send_message(message.chat.id,'Поиск остановлен, напишите /menu')
         else:
-            print('Вы на этапе Где уже заносится в базу и тд')
+            chat_info=db.get_active_chat(message.chat.id)
+            bot.send_message(chat_info[1],message.text)
+    else:
+        markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+        item1=types.KeyboardButton('/reg')
+        markup.add(item1)
+        bot.send_message(message.chat.id,' Вы не зарегестрированы, напишите /reg',reply_markup=markup)
 
 
 
