@@ -79,6 +79,7 @@ def menu(message):
     global name
     global gend
     global description
+    global idphoto
     if message.chat.type=='private':
         if message.text=='Да':
             markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -86,7 +87,7 @@ def menu(message):
             markup.add(item1)
             flag=True
             if name!='' and age!=0 and gend!='' and flag:
-                db.add_user(message.chat.id, gend, age, name,description)
+                db.add_user(message.chat.id, gend, age, name,description,idphoto)
                 bot.send_message(message.from_user.id, 'Вы создали анкету, поздравляем!'.format(message.from_user),reply_markup=markup)            
             else:
                 print(name,age,gend,flag,chat_id)
@@ -129,8 +130,7 @@ def main(message):
                 bot.send_message(message.chat.id,'Идет поиск собеседника',reply_markup=markup)
             else:
                 mess='Собеседник найден! Чтобы остановить диалог, нажмите /stop' 
-                markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
-                #item1=types.KeyboardButton('Отправить ссылку на мою страницу')
+                markup=types.ReplyKeyboardMarkup(resize_keyboard=True)        
                 inDialog=True
                 item1=types.KeyboardButton('/stop')
                 markup.add(item1)
@@ -138,9 +138,10 @@ def main(message):
                 bot.send_message(chat_two,mess,reply_markup=markup)
                 chat_info=db.get_active_chat(message.chat.id)
                 #db.de()
-                myname,myage,mygender,mydesc= db.create_self_anketa(message.chat.id)
+                myname,myage,mygender,mydesc,myphoto= db.create_self_anketa(message.chat.id)
                 anketa=myname + ', ' + str(myage) + ', '+ mygender + '\n' +mydesc 
                 bot.send_message(chat_info[1],anketa)
+                bot.send_photo(chat_info[1],myphoto)
                 flagFirst+=1
                 bot.send_message(message.chat.id,'Вы отправили анкету собеседнику')                
         elif message.text =='Остановить поиск' and inDialog==False:
@@ -151,9 +152,10 @@ def main(message):
             bot.send_message(chat_info[1],message.text)
             if flagFirst<2:
                 flagFirst+=1
-                myname,myage,mygender,mydesc= db.create_self_anketa(message.chat.id)
+                myname,myage,mygender,mydesc,myphoto= db.create_self_anketa(message.chat.id)
                 anketa=myname + ', ' + str(myage) + ', '+ mygender + '\n' +mydesc 
                 bot.send_message(chat_info[1],anketa)
+                bot.send_photo(chat_info[1],myphoto)
         else:
             bot.send_message(message.chat.id,'Вы не в диалоге. Найдите собеседника')
     else:
@@ -199,3 +201,5 @@ def callback_worker(call):
 
 
 bot.polling(none_stop=True,interval=0)
+
+
