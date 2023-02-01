@@ -162,40 +162,9 @@ def main(message):
         markup.add(item1)
         bot.send_message(message.chat.id,' Вы не зарегестрированы, напишите /reg',reply_markup=markup)
 
-
-
-
-
 #@bot.message_handler(content_types=["photo"])
 #def photo(message):
  #  idphoto = message.photo[0].file_id
    #bot.send_photo(message.chat.id, idphoto )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-'''
-@bot.callback_query_handler(func=lambda call: True)
-def callback_worker(call):
-    if call.data == "yes": #call.data это callback_data, которую мы указали при объявлении кнопки
-         #код сохранения данных, или их обработки
-        bot.send_message(call.message.chat.id, 'Спасибо за регистрацию')
-    elif call.data == "no":
-        bot.send_message(call.message.chat.id, 'Пройди регистрацию заново. Напиши /reg')
-'''
-
 
 bot.polling(none_stop=True,interval=0)
